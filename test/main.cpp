@@ -1,8 +1,5 @@
 #include <pcap.h>
 #include <stdio.h>
-#include "main.h"
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 void usage() {
     printf("syntax: pcap-test <interface>\n");
@@ -31,7 +28,7 @@ int main(int argc, char* argv[]) {
 	const struct sniff_ethernet *ethernet; /* The ethernet header */
 	const struct sniff_ip *ip; /* The IP header */
 	const struct sniff_tcp *tcp; /* The TCP header */
-	const u_char* payload; /* Packet payload */
+	const char *payload; /* Packet payload */
 
 	u_int size_ip;
 	u_int size_tcp;
@@ -47,17 +44,15 @@ int main(int argc, char* argv[]) {
 	size_ip = IP_HL(ip)*4;
 	if (size_ip < 20) {
 		printf("   * Invalid IP header length: %u bytes\n", size_ip);
-		return -1;
+		return;
 	}
 	tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
 	size_tcp = TH_OFF(tcp)*4;
 	if (size_tcp < 20) {
 		printf("   * Invalid TCP header length: %u bytes\n", size_tcp);
-		return -1;
+		return;
 	}
-	payload = (u_char*)(packet + SIZE_ETHERNET + size_ip + size_tcp);
-
-	printf("-------------------------------\n");
+	payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp);
 
 	printf("1. src mac : ");
 	for(int i = ETHER_ADDR_LEN; i > 0; i--) printf("%02X", ethernet->ether_shost[i]);
@@ -72,8 +67,8 @@ int main(int argc, char* argv[]) {
 	printf("3. src port : %d\tdst port:%d\n",ntohs(tcp->th_sport),ntohs(tcp->th_dport));
 
 	printf("4. payload : ");
-	for(int i=0; i<16; i++)printf("%02X ",payload[i]);
-	printf("\n");
+	printf("%16x\n", payload);
+
     }
 
     pcap_close(handle);
